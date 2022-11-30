@@ -11,7 +11,7 @@ endif()
 
 find_package(ZLIB REQUIRED)
 
-add_library(pack2 STATIC src/loader.cpp)
+add_library(pack2 STATIC src/loader.cpp include/pack2lib.h)
 target_include_directories(pack2 PUBLIC include)
 target_link_libraries(pack2 PRIVATE spdlog::spdlog)
 target_link_libraries(pack2 PRIVATE ZLIB::ZLIB)

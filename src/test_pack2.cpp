@@ -1,4 +1,4 @@
-#include "loader.h"
+#include "pack2lib.h"
 
 #include <iostream>
 #include <fstream>
@@ -10,7 +10,7 @@ namespace logger = spdlog;
 int main() {
     logger::set_level(logger::level::info);
     logger::info("Pack2 Test Program (using pack2lib {})", Pack2::version());
-    std::filesystem::path path("/home/ryan/repos/pack2lib/test_files/Amerish_x64_7.pack2");
+    std::filesystem::path path("C:/Users/Public/Daybreak Game Company/Installed Games/Planetside 2 Test/Resources/Assets/Amerish_x64_7.pack2");
     std::ifstream input(path, std::ios::binary | std::ios::ate);
 
     size_t length = input.tellg();
@@ -26,11 +26,10 @@ int main() {
     input.read((char*)data.get(), length);
 
     std::span<uint8_t> span_data = std::span<uint8_t>(data.get(), length);
-    std::size_t count = 4;
-    logger::info("Data at 0 = {}", std::string((char*)span_data.first(4).data(), count));
 
     Pack2 pack2(path, span_data);
 
+    logger::info("Magic = {}", pack2.magic());
     std::vector<uint8_t> namelist;
     if(pack2.contains("{NAMELIST}")) {
         logger::info("Found namelist:");

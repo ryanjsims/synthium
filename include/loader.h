@@ -1,6 +1,7 @@
 #pragma once
 #include <span>
 #include <spdlog/spdlog.h>
+#include <string_view>
 #include <unordered_map>
 #include <filesystem>
 
@@ -35,7 +36,7 @@ struct Pack2 {
         return buf_.size();
     }
 
-    ref<uint32_t> magic() const;
+    std::string_view magic() const;
     ref<uint32_t> asset_count() const;
     ref<uint64_t> length() const;
     ref<uint64_t> map_offset() const;

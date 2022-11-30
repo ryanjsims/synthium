@@ -15,8 +15,12 @@ uint32_t ntohl(uint32_t const net) {
 }
 
 namespace logger = spdlog;
+using namespace std::literals::string_view_literals;
 
 Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), path(path_) {
+    if(magic() != "PAK\x01") {
+        throw std::invalid_argument("Invalid magic, '" + path.string() + "' is not a pack2 file.");
+    }
     name = path.stem().string();
     logger::info("Loading {} assets from {}{}", asset_count(), name, path.extension().string());
     const std::span<uint8_t> asset_data = buf_.subspan(map_offset(), asset_count() * sizeof(Asset2));
@@ -32,8 +36,8 @@ std::string Pack2::version() {
     return PACK2LIB_VERSION;
 }
 
-Pack2::ref<uint32_t> Pack2::magic() const {
-    return get<uint32_t>(0);
+std::string_view Pack2::magic() const {
+    return std::string_view((char*)buf_.data(), 4);
 }
 
 Pack2::ref<uint32_t> Pack2::asset_count() const {
