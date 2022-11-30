@@ -17,7 +17,7 @@ target_include_directories(synthium PUBLIC include)
 target_link_libraries(synthium PRIVATE spdlog::spdlog)
 target_link_libraries(synthium PRIVATE ZLIB::ZLIB)
 
-add_executable(test_crc64 src/test_crc64.cpp)
+add_executable(test_crc64 src/test_crc64.cpp src/crc64.cpp)
 target_include_directories(test_crc64 PUBLIC include)
 target_link_libraries(test_crc64 PRIVATE spdlog::spdlog)
 
