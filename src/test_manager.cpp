@@ -19,5 +19,6 @@ int main() {
     std::ofstream output("export/" + filename, std::ios::binary);
     output.write((char*)data.data(), data.size());
     output.close();
+    logger::info("Wrote {} bytes to export/{}", data.size(), filename);
     return 0;
 }
