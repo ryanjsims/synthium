@@ -1,2 +1,4 @@
 build/
 include/version.h
+test_files/
+.vscode/

@@ -42,9 +42,10 @@ struct Pack2 {
 
     std::span<Asset2> raw_assets() const;
     Asset2 asset(std::string name) const;
-    std::vector<uint8_t> asset_data(std::string name, bool raw) const;
+    std::vector<uint8_t> asset_data(std::string name, bool raw = false) const;
 
     bool contains(std::string name) const;
+    static std::string version();
 private:
     std::unordered_map<uint64_t, uint64_t> namehash_to_index;
     std::span<Asset2> assets;
