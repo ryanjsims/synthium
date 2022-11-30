@@ -17,7 +17,7 @@ Manager::Manager(std::vector<std::filesystem::path> paths) {
         std::ifstream input(path, std::ios::binary | std::ios::ate);
 
         size_t length = input.tellg();
-        logger::info("Loading file {} with length: {}", path.filename().string(), length);
+        logger::debug("Loading file {} with length: {}", path.filename().string(), length);
         input.seekg(0);
         std::unique_ptr<uint8_t[]> data;
         try {

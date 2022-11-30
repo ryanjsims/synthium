@@ -22,14 +22,14 @@ Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), 
     if(magic() != "PAK\x01") {
         throw std::invalid_argument("Invalid magic, '" + path.string() + "' is not a pack2 file.");
     }
-    logger::info("Loading {} assets from {}", asset_count(), get_name());
+    logger::debug("Loading {} assets from {}", asset_count(), get_name());
     
     std::span<Asset2Raw> assets = raw_assets();
     for(uint32_t i = 0; i < assets.size(); i++) {
         logger::debug("assets[{}].name_hash = 0x{:016x}", i, assets[i].name_hash);
         namehash_to_asset[assets[i].name_hash] = i;
     }
-    logger::info("Loaded.");
+    logger::debug("Loaded.");
 }
 
 std::string_view Pack2::magic() const {
