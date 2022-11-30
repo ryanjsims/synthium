@@ -1,5 +1,9 @@
+#pragma once
+
 #include <cstdint>
 #include <span>
+#include <cctype>
+#include <string>
 
 // Rhett's table
 uint64_t crc_table[] = {
