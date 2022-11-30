@@ -22,10 +22,9 @@ Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), 
     if(magic() != "PAK\x01") {
         throw std::invalid_argument("Invalid magic, '" + path.string() + "' is not a pack2 file.");
     }
-    name = path.stem().string();
-    logger::info("Loading {} assets from {}{}", asset_count(), name, path.extension().string());
-    const std::span<uint8_t> asset_data = buf_.subspan(map_offset(), asset_count() * sizeof(Asset2Raw));
-    assets = std::span<Asset2Raw>((Asset2Raw*)asset_data.data(), asset_count());
+    logger::info("Loading {} assets from {}", asset_count(), get_name());
+    
+    std::span<Asset2Raw> assets = raw_assets();
     for(uint32_t i = 0; i < assets.size(); i++) {
         logger::debug("assets[{}].name_hash = 0x{:016x}", i, assets[i].name_hash);
         namehash_to_asset[assets[i].name_hash] = i;
@@ -54,7 +53,8 @@ Pack2::ref<uint64_t> Pack2::map_offset() const {
 }
 
 std::span<Asset2Raw> Pack2::raw_assets() const {
-    return assets;
+    std::span<uint8_t> asset_data = buf_.subspan(map_offset(), asset_count() * sizeof(Asset2Raw));
+    return std::span<Asset2Raw>((Asset2Raw*)asset_data.data(), asset_count());
 }
 
 Asset2 Pack2::asset(std::string name) const {
@@ -62,9 +62,10 @@ Asset2 Pack2::asset(std::string name) const {
     try {
         index = namehash_to_asset.at(crc64(name));
     } catch(std::out_of_range &err) {
-        logger::error("{} not in Pack {}: {}", name, this->name, err.what());
+        logger::error("{} not in Pack {}: {}", name, this->get_name(), err.what());
         return {{}, {}};
     }
+    std::span<Asset2Raw> assets = raw_assets();
     return Asset2(assets[index], name, buf_.subspan(assets[index].offset, assets[index].data_length));
 }
 
