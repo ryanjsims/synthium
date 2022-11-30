@@ -1,4 +1,4 @@
-#include "pack2lib.h"
+#include "synthium.h"
 
 #include <iostream>
 #include <fstream>
@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 
 namespace logger = spdlog;
+using namespace synthium;
 
 int main() {
     logger::set_level(logger::level::info);

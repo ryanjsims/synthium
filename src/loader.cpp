@@ -16,6 +16,7 @@ uint32_t ntohl(uint32_t const net) {
 
 namespace logger = spdlog;
 using namespace std::literals::string_view_literals;
+using namespace synthium;
 
 Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), path(path_) {
     if(magic() != "PAK\x01") {
@@ -33,7 +34,7 @@ Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), 
 }
 
 std::string Pack2::version() {
-    return PACK2LIB_VERSION;
+    return SYNTHIUM_VERSION;
 }
 
 std::string_view Pack2::magic() const {
