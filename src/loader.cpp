@@ -24,11 +24,11 @@ Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), 
     }
     name = path.stem().string();
     logger::info("Loading {} assets from {}{}", asset_count(), name, path.extension().string());
-    const std::span<uint8_t> asset_data = buf_.subspan(map_offset(), asset_count() * sizeof(Asset2));
-    assets = std::span<Asset2>((Asset2*)asset_data.data(), asset_count());
+    const std::span<uint8_t> asset_data = buf_.subspan(map_offset(), asset_count() * sizeof(Asset2Raw));
+    assets = std::span<Asset2Raw>((Asset2Raw*)asset_data.data(), asset_count());
     for(uint64_t i = 0; i < assets.size(); i++) {
         logger::debug("assets[{}].name_hash = 0x{:016x}", i, assets[i].name_hash);
-        namehash_to_index[assets[i].name_hash] = i;
+        namehash_to_asset[assets[i].name_hash] = i;
     }
     logger::info("Loaded.");
 }
@@ -53,37 +53,47 @@ Pack2::ref<uint64_t> Pack2::map_offset() const {
     return get<uint64_t>(16);
 }
 
-std::span<Asset2> Pack2::raw_assets() const {
+std::span<Asset2Raw> Pack2::raw_assets() const {
     return assets;
 }
 
 Asset2 Pack2::asset(std::string name) const {
-    uint64_t index;
+    uint32_t index;
     try {
-        index = namehash_to_index.at(crc64(name));
+        index = namehash_to_asset.at(crc64(name));
     } catch(std::out_of_range &err) {
         logger::error("{} not in Pack {}: {}", name, this->name, err.what());
-        return {};
+        return {{}, {}};
     }
-    return assets[index];
+    return Asset2(assets[index], name, buf_.subspan(assets[index].offset, assets[index].data_length));
 }
 
 bool Pack2::contains(std::string name) const {
     logger::debug("{}: 0x{:x}", name, crc64(name));
-    return namehash_to_index.find(crc64(name)) != namehash_to_index.end();
+    return namehash_to_asset.find(crc64(name)) != namehash_to_asset.end();
 }
 
 std::vector<uint8_t> Pack2::asset_data(std::string name, bool raw) const {
-    Asset2 asset = this->asset(name);
-    if(asset.name_hash == 0) {
-        return {};
-    }
-    std::span<uint8_t> raw_data = buf_.subspan(asset.offset + 8, asset.data_length);
-    if (raw || (asset.zipped != 1 && asset.zipped != 17)) {
+    return asset(name).get_data(raw);
+}
+
+
+Asset2::Asset2(Asset2Raw raw, std::span<uint8_t> data): Asset2(raw, "", data) {}
+
+Asset2::Asset2(Asset2Raw raw, std::string name_, std::span<uint8_t> data): name(name_), buf_(data), raw_(raw) {}
+
+uint32_t Asset2::uncompressed_size() const {
+    return ntohl(get<uint32_t>(4));
+}
+
+std::vector<uint8_t> Asset2::get_data(bool raw) const {
+    std::span<uint8_t> raw_data = buf_.subspan(8);
+    if (raw || (raw_.zipped != 1 && raw_.zipped != 17)) {
         return std::vector<uint8_t>(raw_data.begin(), raw_data.end());
     }
-    uLongf unzipped_length = ntohl(get<uint32_t>(asset.offset + 4));
+
     std::shared_ptr<uint8_t[]> buffer;
+    uLongf unzipped_length = (uLongf)uncompressed_size();
     try {
         buffer = std::make_shared<uint8_t[]>(unzipped_length);
     } catch(std::bad_alloc &err) {
