@@ -32,10 +32,6 @@ Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), 
     logger::info("Loaded.");
 }
 
-std::string Pack2::version() {
-    return SYNTHIUM_VERSION;
-}
-
 std::string_view Pack2::magic() const {
     return std::string_view((char*)buf_.data(), 4);
 }

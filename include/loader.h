@@ -95,8 +95,6 @@ namespace synthium {
             return path;
         }
 
-        static std::string version();
-
         friend struct Manager;
     private:
         std::unordered_map<uint64_t, uint32_t> namehash_to_asset;

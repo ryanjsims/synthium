@@ -10,7 +10,7 @@ using namespace synthium;
 
 int main() {
     logger::set_level(logger::level::info);
-    logger::info("Pack2 Test Program (using pack2lib {})", Pack2::version());
+    logger::info("Pack2 Test Program (using pack2lib {})", synthium::version());
     std::filesystem::path path("C:/Users/Public/Daybreak Game Company/Installed Games/Planetside 2 Test/Resources/Assets/Amerish_x64_7.pack2");
     std::ifstream input(path, std::ios::binary | std::ios::ate);
 

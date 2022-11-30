@@ -109,7 +109,3 @@ size_t Manager::unload(uint32_t index) {
 bool Manager::is_loaded(uint32_t index) {
     return packs.at(index).second != nullptr;
 }
-
-std::string Manager::version() {
-    return SYNTHIUM_VERSION;
-}

@@ -13,7 +13,6 @@ namespace synthium {
 
         const Asset2 get(std::string name);
 
-        static std::string version();
     private:
         std::unordered_map<uint64_t, uint32_t> namehash_to_pack;
         std::vector<std::pair<Pack2, std::unique_ptr<uint8_t[]>>> packs;
