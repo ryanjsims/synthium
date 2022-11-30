@@ -38,6 +38,10 @@ namespace synthium {
             return buf_.size();
         }
 
+        uint64_t length() const {
+            return raw_.data_length;
+        }
+
         uint32_t uncompressed_size() const;
         std::vector<uint8_t> get_data(bool raw = false) const;
         std::string_view get_name() const {
@@ -83,8 +87,8 @@ namespace synthium {
 
         bool contains(std::string name) const;
 
-        std::string_view get_name() const {
-            return name;
+        std::string get_name() const {
+            return path.filename().string();
         }
 
         const std::filesystem::path get_path() const {
@@ -92,10 +96,10 @@ namespace synthium {
         }
 
         static std::string version();
+
+        friend struct Manager;
     private:
         std::unordered_map<uint64_t, uint32_t> namehash_to_asset;
-        std::span<Asset2Raw> assets;
-        std::string name;
         std::filesystem::path path;
     };
 }
