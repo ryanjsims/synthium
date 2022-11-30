@@ -12,6 +12,7 @@ using namespace synthium;
 
 Manager::Manager(std::vector<std::filesystem::path> paths) {
     std::mutex packs_mutex, namehashes_mutex;
+    std::vector<std::unordered_map<uint64_t, uint32_t>> maps;
     std::for_each(std::execution::par, paths.begin(), paths.end(), [&](std::filesystem::path path){
         std::ifstream input(path, std::ios::binary | std::ios::ate);
 
@@ -35,12 +36,18 @@ Manager::Manager(std::vector<std::filesystem::path> paths) {
             i = (uint32_t)packs.size();
             packs.push_back(std::make_pair(pack2, std::move(data)));
         }
-
+        std::unordered_map<uint64_t, uint32_t> temp;
         for(auto iter = pack2.namehash_to_asset.begin(); iter != pack2.namehash_to_asset.end(); iter++) {
+            temp[iter->first] = i;
+        }
+        {
             std::scoped_lock<std::mutex> lk(namehashes_mutex);
-            namehash_to_pack[iter->first] = i;
+            maps.push_back(temp);
         }
     });
+    for(auto& map : maps) {
+        namehash_to_pack.merge(map);
+    }
 }
 
 const Asset2 Manager::get(std::string name) {
