@@ -9,15 +9,15 @@ if(GIT_EXECUTABLE)
     OUTPUT_STRIP_TRAILING_WHITESPACE
     )
   if(NOT GIT_DESCRIBE_ERROR_CODE)
-    set(FOOBAR_VERSION ${GIT_DESCRIBE_VERSION})
+    set(SYNTHIUM_VERSION ${GIT_DESCRIBE_VERSION})
   endif()
 endif()
 
 # Final fallback: Just use a bogus version string that is semantically older
 # than anything else and spit out a warning to the developer.
-if(NOT DEFINED FOOBAR_VERSION)
-  set(FOOBAR_VERSION v0.0.0-unknown)
-  message(WARNING "Failed to determine FOOBAR_VERSION from Git tags. Using default version \"${FOOBAR_VERSION}\".")
+if(NOT DEFINED SYNTHIUM_VERSION)
+  set(SYNTHIUM_VERSION v0.0.0-unknown)
+  message(WARNING "Failed to determine SYNTHIUM_VERSION from Git tags. Using default version \"${SYNTHIUM_VERSION}\".")
 endif()
 
 configure_file(${SRC} ${DST} @ONLY)
