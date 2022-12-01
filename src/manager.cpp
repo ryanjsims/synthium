@@ -86,6 +86,10 @@ const Asset2 Manager::get(std::string name) {
     return pack.asset(name);
 }
 
+bool Manager::contains(std::string name) {
+    return namehash_to_pack.find(crc64(name)) != namehash_to_pack.end();
+}
+
 void Manager::load(uint32_t index) {
     if(is_loaded(index))
         return;
