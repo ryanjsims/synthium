@@ -3,7 +3,7 @@
 #include <string>
 #include <spdlog/spdlog.h>
 
-#include "crc64.h"
+#include "synthium/crc64.h"
 
 namespace logger = spdlog;
 

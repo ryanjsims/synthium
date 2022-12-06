@@ -1,4 +1,4 @@
-#include "crc64.h"
+#include "synthium/crc64.h"
 
 // Rhett's table
 uint64_t crc_table[] = {

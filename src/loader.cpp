@@ -1,6 +1,6 @@
-#include "crc64.h"
-#include "loader.h"
-#include "version.h"
+#include "synthium/crc64.h"
+#include "synthium/loader.h"
+#include "synthium/version.h"
 
 #include <zlib.h>
 

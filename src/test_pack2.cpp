@@ -1,4 +1,4 @@
-#include "synthium.h"
+#include "synthium/synthium.h"
 
 #include <iostream>
 #include <fstream>

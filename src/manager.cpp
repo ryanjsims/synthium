@@ -1,6 +1,6 @@
-#include "crc64.h"
-#include "manager.h"
-#include "version.h"
+#include "synthium/crc64.h"
+#include "synthium/manager.h"
+#include "synthium/version.h"
 
 #include <algorithm>
 #include <execution>
