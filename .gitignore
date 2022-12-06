@@ -1,5 +1,5 @@
 build/
-include/version.h
+include/synthium/version.h
 test_files/
 .vscode/
 export/
