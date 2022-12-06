@@ -11,14 +11,10 @@ namespace synthium {
     struct Manager {
         Manager(std::vector<std::filesystem::path> packs);
 
-        const Asset2 get(std::string name);
+        const Asset2 get(std::string name) const;
         bool contains(std::string name);
     private:
         std::unordered_map<uint64_t, uint32_t> namehash_to_pack;
         std::vector<std::pair<Pack2, std::unique_ptr<uint8_t[]>>> packs;
-
-        void load(uint32_t index);
-        size_t unload(uint32_t index);
-        bool is_loaded(uint32_t index);
     };
 }

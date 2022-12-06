@@ -13,7 +13,7 @@ int main() {
         )
     );
 
-    std::string filename = "Common_HeavyFighter_Weapon_MachineGun_001.adr";
+    std::string filename = "Weapons_Common_Shared_All_C.dds";
 
     std::vector<uint8_t> data = manager.get(filename).get_data();
     std::ofstream output("export/" + filename, std::ios::binary);
