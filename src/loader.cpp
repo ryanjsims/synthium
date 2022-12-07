@@ -84,10 +84,10 @@ uint32_t Asset2::uncompressed_size() const {
 }
 
 std::vector<uint8_t> Asset2::get_data(bool raw) const {
-    std::span<uint8_t> raw_data = buf_.subspan(8);
     if (raw || (raw_.zipped != 1 && raw_.zipped != 17)) {
-        return std::vector<uint8_t>(raw_data.begin(), raw_data.end());
+        return std::vector<uint8_t>(buf_.begin(), buf_.end());
     }
+    std::span<uint8_t> raw_data = buf_.subspan(8);
 
     std::shared_ptr<uint8_t[]> buffer;
     uLongf unzipped_length = (uLongf)uncompressed_size();
