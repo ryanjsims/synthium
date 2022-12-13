@@ -50,11 +50,11 @@ Manager::Manager(std::vector<std::filesystem::path> paths) {
     }
 }
 
-const Asset2 Manager::get(std::string name) const {
+const std::optional<Asset2> Manager::get(std::string name) const {
     uint64_t namehash = crc64(name);
     if(namehash_to_pack.find(namehash) == namehash_to_pack.end()) {
         logger::error("{} not found in given packs.", name);
-        return Asset2({}, {});
+        return {};
     }
 
     Pack2 pack = packs.at(namehash_to_pack.at(namehash)).first;
@@ -62,6 +62,6 @@ const Asset2 Manager::get(std::string name) const {
     return pack.asset(name);
 }
 
-bool Manager::contains(std::string name) {
+bool Manager::contains(std::string name) const {
     return namehash_to_pack.find(crc64(name)) != namehash_to_pack.end();
 }
