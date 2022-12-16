@@ -26,7 +26,7 @@ Pack2::Pack2(std::filesystem::path path_, std::span<uint8_t> data): buf_(data), 
     
     std::span<Asset2Raw> assets = raw_assets();
     for(uint32_t i = 0; i < assets.size(); i++) {
-        logger::debug("assets[{}].name_hash = 0x{:016x}", i, assets[i].name_hash);
+        logger::trace("assets[{}].name_hash = 0x{:016x}", i, assets[i].name_hash);
         namehash_to_asset[assets[i].name_hash] = i;
     }
     logger::debug("Loaded.");
