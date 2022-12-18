@@ -84,7 +84,7 @@ uint32_t Asset2::uncompressed_size() const {
 }
 
 std::vector<uint8_t> Asset2::get_data(bool raw) const {
-    if (raw || (raw_.zipped != 1 && raw_.zipped != 17)) {
+    if (raw || !raw_.is_zipped()) {
         return std::vector<uint8_t>(buf_.begin(), buf_.end());
     }
     std::span<uint8_t> raw_data = buf_.subspan(8);

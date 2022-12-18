@@ -12,6 +12,10 @@ namespace synthium {
         uint64_t data_length;
         uint32_t zipped;
         uint32_t data_hash;
+
+        bool is_zipped() const {
+            return zipped == 1 || zipped == 17;
+        }
     };
 
     struct Asset2 {
