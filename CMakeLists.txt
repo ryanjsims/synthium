@@ -27,10 +27,12 @@ include(GenerateExportHeader)
 
 add_library(synthium STATIC src/loader.cpp src/manager.cpp src/crc64.cpp include/synthium/synthium.h)
 target_include_directories(synthium PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
-    $<INSTALL_INTERFACE:include>)
-target_link_libraries(synthium PRIVATE spdlog::spdlog)
-target_link_libraries(synthium PRIVATE ZLIB::ZLIB)
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+$<INSTALL_INTERFACE:include>)
+target_link_libraries(synthium PRIVATE spdlog::spdlog ZLIB::ZLIB)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  target_link_libraries(synthium PRIVATE tbb)
+endif()
 set_target_properties(synthium PROPERTIES PUBLIC_HEADER "include/synthium/synthium.h;include/synthium/loader.h;include/synthium/manager.h;include/synthium/version.h")
 set_target_properties(synthium PROPERTIES DEBUG_POSTFIX d)
 
