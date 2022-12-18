@@ -65,3 +65,43 @@ const std::optional<Asset2> Manager::get(std::string name) const {
 bool Manager::contains(std::string name) const {
     return namehash_to_pack.find(crc64(name)) != namehash_to_pack.end();
 }
+
+void Manager::export_by_magic(
+    std::span<uint8_t> magic, 
+    std::filesystem::path output_directory, 
+    std::string extension
+) {
+    std::stringstream magic_string;
+    for(uint32_t i = 0; i < magic.size(); i++) {
+        magic_string << std::hex << std::setw(2) << std::setfill('0') << (int)magic[i] << " ";
+    }
+    logger::info("Got magic {}", magic_string.str());
+    std::mutex io_mutex;
+    std::for_each(
+        std::execution::par,
+        packs.begin(), packs.end(), [&](std::pair<Pack2, std::unique_ptr<uint8_t[]>>& pack_pair){
+        std::span<Asset2Raw> assets = pack_pair.first.raw_assets();
+        for(uint32_t i = 0; i < assets.size(); i++) {
+            std::vector<uint8_t> data_container;
+            std::span<uint8_t> asset_data;
+            if(assets[i].data_length == 0) {
+                continue;
+            }
+            if(!assets[i].is_zipped()) {
+                asset_data = pack_pair.first.buf_.subspan(assets[i].offset, assets[i].data_length);
+            } else {
+                Asset2 asset(assets[i], pack_pair.first.buf_.subspan(assets[i].offset, assets[i].data_length));
+                data_container = asset.get_data();
+                asset_data = std::span<uint8_t>(data_container.begin(), data_container.end());
+            }
+
+            if(std::strncmp((char*)magic.data(), (char*)asset_data.data(), magic.size()) == 0) {
+                std::scoped_lock<std::mutex> lk(io_mutex);
+                logger::info("{}", std::to_string(assets[i].name_hash));
+                std::ofstream output((output_directory / std::to_string(assets[i].name_hash)).replace_extension(extension), std::ios::binary);
+                output.write((char*)asset_data.data(), asset_data.size());
+                output.close();
+            }
+        }
+    });
+}
