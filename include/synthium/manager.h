@@ -1,4 +1,8 @@
 #pragma once
+#ifdef _WIN32
+typedef int64_t ssize_t;
+#endif
+
 #include "loader.h"
 
 #include <filesystem>
