@@ -131,7 +131,7 @@ std::vector<uint8_t> Asset2::get_data(bool raw) const {
         logger::error("Failed to allocate output buffer: {}", err.what());
         throw err;
     }
-    uLong zipped_length = raw_data.size();
+    uLong zipped_length = (uLong)raw_data.size();
     int errcode = uncompress(buffer.get(), &unzipped_length, raw_data.data(), zipped_length);
     if(errcode != Z_OK) {
         switch(errcode) {
