@@ -53,6 +53,24 @@ std::span<Asset2Raw> Pack2::raw_assets() const {
     return std::span<Asset2Raw>((Asset2Raw*)asset_data.data(), asset_count());
 }
 
+std::shared_ptr<Asset2> Pack2::asset(std::string name) {
+    uint32_t index;
+    try {
+        index = namehash_to_asset.at(crc64(name));
+    } catch(std::out_of_range &err) {
+        logger::error("{} not in Pack {}: {}", name, this->get_name(), err.what());
+        return nullptr;
+    }
+
+    std::unordered_map<uint32_t, std::shared_ptr<Asset2>>::iterator iter;
+    if((iter = assets_in_use.find(index)) != assets_in_use.end()) {
+        return iter->second;
+    }
+    std::span<Asset2Raw> assets = raw_assets();
+    assets_in_use[index] = std::make_shared<Asset2>(assets[index], name, buf_.subspan(assets[index].offset, assets[index].data_length));
+    return assets_in_use[index];
+}
+
 Asset2 Pack2::asset(std::string name) const {
     uint32_t index;
     try {
@@ -72,6 +90,22 @@ bool Pack2::contains(std::string name) const {
 
 std::vector<uint8_t> Pack2::asset_data(std::string name, bool raw) const {
     return asset(name).get_data(raw);
+}
+
+bool Pack2::in_use() const {
+    for(auto iter = assets_in_use.begin(); iter != assets_in_use.end(); iter++) {
+        if(iter->second.use_count() > 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Pack2::notify_unloaded() {
+    for(auto iter = assets_in_use.begin(); iter != assets_in_use.end(); iter++) {
+        iter->second.reset();
+    }
+    assets_in_use.clear();
 }
 
 
@@ -95,22 +129,24 @@ std::vector<uint8_t> Asset2::get_data(bool raw) const {
         buffer = std::make_shared<uint8_t[]>(unzipped_length);
     } catch(std::bad_alloc &err) {
         logger::error("Failed to allocate output buffer: {}", err.what());
-        std::exit(1);
+        throw err;
     }
-    int errcode = uncompress(buffer.get(), &unzipped_length, raw_data.data(), (uLong)raw_data.size());
+    uLong zipped_length = raw_data.size();
+    int errcode = uncompress(buffer.get(), &unzipped_length, raw_data.data(), zipped_length);
     if(errcode != Z_OK) {
         switch(errcode) {
         case Z_MEM_ERROR:
             logger::error("uncompress: Not enough memory! ({})", errcode);
-            break;
+            throw std::bad_alloc();
         case Z_BUF_ERROR:
+            // Theoretically this shouldn't happen
             logger::error("uncompress: Not enough room in the output buffer! ({})", errcode);
             break;
         case Z_DATA_ERROR:
             logger::error("uncompress: Input data was corrupted or incomplete! ({})", errcode);
             break;
         }
-        std::exit(1);
+        throw std::runtime_error(zError(errcode));
     }
     return std::vector<uint8_t>(buffer.get(), buffer.get() + unzipped_length);
 }

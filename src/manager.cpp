@@ -14,20 +14,8 @@ Manager::Manager(std::vector<std::filesystem::path> paths) {
     std::mutex packs_mutex, namehashes_mutex;
     std::vector<std::unordered_map<uint64_t, uint32_t>> maps;
     std::for_each(std::execution::par, paths.begin(), paths.end(), [&](std::filesystem::path path){
-        std::ifstream input(path, std::ios::binary | std::ios::ate);
-
-        size_t length = input.tellg();
-        logger::debug("Loading file {} with length: {}", path.filename().string(), length);
-        input.seekg(0);
-        std::unique_ptr<uint8_t[]> data;
-        try {
-            data = std::make_unique<uint8_t[]>(length);
-        } catch(std::bad_alloc) {
-            logger::error("Failed to allocate memory!");
-            std::exit(1);
-        }
-        input.read((char*)data.get(), length);
-        input.close();
+        size_t length;
+        std::unique_ptr<uint8_t[]> data = open_pack(path, &length);
 
         Pack2 pack2(path, std::span<uint8_t>(data.get(), length));
         uint32_t i;
@@ -50,16 +38,36 @@ Manager::Manager(std::vector<std::filesystem::path> paths) {
     }
 }
 
-const std::optional<Asset2> Manager::get(std::string name) const {
+const std::shared_ptr<Asset2> Manager::get(std::string name) {
     uint64_t namehash = crc64(name);
     if(namehash_to_pack.find(namehash) == namehash_to_pack.end()) {
         logger::error("{} not found in given packs.", name);
-        return {};
+        return nullptr;
     }
 
-    Pack2 pack = packs.at(namehash_to_pack.at(namehash)).first;
-    
-    return pack.asset(name);
+    uint32_t index = namehash_to_pack.at(namehash);
+
+    if(!pack_is_loaded(index)) {
+        uint32_t retries = 3;
+        while(!load_pack(index) && retries > 0) {
+            ssize_t needed = packs.at(index).first.size();
+            deallocate(needed);
+            retries--;
+        }
+        if(retries == 0 && !pack_is_loaded(index)) {
+            logger::error("Could not load pack with requested asset");
+            std::exit(1);
+        }
+    }
+
+    auto&[pack, data] = packs.at(index);
+    std::shared_ptr<Asset2> to_return;
+    try {
+        to_return = pack.asset(name);
+    } catch(std::bad_alloc) {
+
+    }
+    return to_return;
 }
 
 bool Manager::contains(std::string name) const {
@@ -104,4 +112,82 @@ void Manager::export_by_magic(
             }
         }
     });
+}
+
+void Manager::deallocate(ssize_t bytes) {
+    for(uint32_t i = 0; i < packs.size() && bytes > 0; i++) {
+        if(pack_is_loaded(i) && !packs.at(i).first.in_use()) {
+            bytes -= unload_pack(i);
+        }
+    }
+}
+
+std::unique_ptr<uint8_t[]> Manager::open_pack(std::filesystem::path path, size_t* length) {
+    std::ifstream input(path, std::ios::binary | std::ios::ate);
+
+    *length = input.tellg();
+    logger::debug("Loading file {} with length: {}", path.filename().string(), *length);
+    input.seekg(0);
+    std::unique_ptr<uint8_t[]> data;
+    try {
+        data = std::make_unique<uint8_t[]>(*length);
+    } catch(std::bad_alloc) {
+        logger::error("Failed to allocate memory!");
+        std::exit(1);
+    }
+    input.read((char*)data.get(), *length);
+    input.close();
+
+    return std::move(data);
+}
+
+bool Manager::load_pack(uint32_t index) {
+    if(index >= packs.size()) {
+        logger::error("load_pack: Index {} out of range");
+        return false;
+    }
+    // If the pack is already loaded, loading it a second time won't do anything
+    if(pack_is_loaded(index)) {
+        logger::debug("Pack already loaded.");
+        return true;
+    }
+
+    auto&[pack, data] = packs.at(index);
+    logger::debug("Loading pack '{}'...", pack.get_name());
+    try {
+        size_t length;
+        data = open_pack(pack.get_path(), &length);
+        pack.buf_ = std::span<uint8_t>(data.get(), length);
+        logger::debug("Loaded pack '{}' ({} bytes loaded)", pack.get_name(), length);
+    } catch(std::exception &e) {
+        logger::error("Failed to load pack: {}", e.what());
+        return false;
+    }
+    return true;
+}
+
+size_t Manager::unload_pack(uint32_t index) {
+    if(index >= packs.size()) {
+        logger::error("unload_pack: Index {} out of range");
+        return 0;
+    }
+    // If the pack is already unloaded, unloading it a second time won't do anything
+    if(!pack_is_loaded(index)) {
+        logger::debug("Pack already unloaded.");
+        return 0;
+    }
+    auto&[pack, data] = packs.at(index);
+    logger::debug("Unloading pack '{}'...", pack.get_name());
+    size_t length = pack.size();
+    data.reset();
+    pack.notify_unloaded();
+    logger::debug("Unloaded pack '{}' ({} bytes unloaded)", pack.get_name(), length);
+    return length;
+}
+
+bool Manager::pack_is_loaded(uint32_t index) {
+    if(index >= packs.size()) {
+        return false;
+    }
+    return packs.at(index).second != nullptr;
 }

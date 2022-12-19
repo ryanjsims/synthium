@@ -86,10 +86,13 @@ namespace synthium {
         ref<uint64_t> map_offset() const;
 
         std::span<Asset2Raw> raw_assets() const;
-        Asset2 asset(std::string name) const;
+        std::shared_ptr<Asset2> asset(std::string name);
         std::vector<uint8_t> asset_data(std::string name, bool raw = false) const;
 
         bool contains(std::string name) const;
+
+        bool in_use() const;
+        void notify_unloaded();
 
         std::string get_name() const {
             return path.filename().string();
@@ -103,5 +106,8 @@ namespace synthium {
     private:
         std::unordered_map<uint64_t, uint32_t> namehash_to_asset;
         std::filesystem::path path;
+        std::unordered_map<uint32_t, std::shared_ptr<Asset2>> assets_in_use;
+
+        Asset2 asset(std::string name) const;
     };
 }
