@@ -28,8 +28,12 @@ include(GenerateExportHeader)
 
 add_library(synthium STATIC src/loader.cpp src/manager.cpp src/crc64.cpp include/synthium/synthium.h)
 target_include_directories(synthium PUBLIC 
-$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
-$<INSTALL_INTERFACE:include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+  $<INSTALL_INTERFACE:include>
+  PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/zlib/>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/external/zlib/>  
+)
 target_link_libraries(synthium PRIVATE spdlog::spdlog ZLIB::ZLIB)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_link_libraries(synthium PRIVATE tbb)
