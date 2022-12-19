@@ -21,7 +21,8 @@ if(NOT TARGET spdlog)
 find_package(spdlog REQUIRED)
 endif()
 
-find_package(ZLIB REQUIRED)
+add_subdirectory(external/zlib)
+add_library(ZLIB::ZLIB ALIAS zlibstatic)
 
 include(GenerateExportHeader)
 
