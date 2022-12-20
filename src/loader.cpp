@@ -114,7 +114,7 @@ Asset2::Asset2(Asset2Raw raw, std::span<uint8_t> data): Asset2(raw, "", data) {}
 Asset2::Asset2(Asset2Raw raw, std::string name_, std::span<uint8_t> data): name(name_), buf_(data), raw_(raw) {}
 
 uint32_t Asset2::uncompressed_size() const {
-    return ntohl(get<uint32_t>(4));
+    return ntohl((uint32_t)get<uint32_t>(4));
 }
 
 std::vector<uint8_t> Asset2::get_data(bool raw) const {
@@ -132,7 +132,8 @@ std::vector<uint8_t> Asset2::get_data(bool raw) const {
         throw err;
     }
     uLong zipped_length = (uLong)raw_data.size();
-    int errcode = uncompress(buffer.get(), &unzipped_length, raw_data.data(), zipped_length);
+    logger::info("Decompressing asset '{}' of length {} (compressed size {})", name, unzipped_length, zipped_length);
+    int errcode = uncompress2(buffer.get(), &unzipped_length, raw_data.data(), &zipped_length);
     if(errcode != Z_OK) {
         switch(errcode) {
         case Z_MEM_ERROR:
