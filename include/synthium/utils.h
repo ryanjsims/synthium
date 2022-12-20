@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <spdlog/fmt/fmt.h>
 #include <vector>
