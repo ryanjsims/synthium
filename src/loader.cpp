@@ -1,6 +1,7 @@
 #include "synthium/crc64.h"
 #include "synthium/loader.h"
 #include "synthium/version.h"
+#include "synthium/utils.h"
 
 #include <zlib.h>
 
@@ -132,7 +133,7 @@ std::vector<uint8_t> Asset2::get_data(bool raw) const {
         throw err;
     }
     uLong zipped_length = (uLong)raw_data.size();
-    logger::info("Decompressing asset '{}' of length {} (compressed size {})", name, unzipped_length, zipped_length);
+    logger::info("Decompressing asset '{}' of size {} (compressed size {})", name, utils::human_bytes(unzipped_length), utils::human_bytes(zipped_length));
     int errcode = uncompress2(buffer.get(), &unzipped_length, raw_data.data(), &zipped_length);
     if(errcode != Z_OK) {
         switch(errcode) {
