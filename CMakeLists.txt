@@ -26,7 +26,7 @@ add_library(ZLIB::ZLIB ALIAS zlibstatic)
 
 include(GenerateExportHeader)
 
-add_library(synthium STATIC src/loader.cpp src/manager.cpp src/crc64.cpp include/synthium/synthium.h)
+add_library(synthium STATIC src/loader.cpp src/manager.cpp src/crc64.cpp src/utils.cpp include/synthium/synthium.h)
 target_include_directories(synthium PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
   $<INSTALL_INTERFACE:include>
