@@ -124,17 +124,18 @@ std::vector<uint8_t> Asset2::get_data(bool raw) const {
     }
     std::span<uint8_t> raw_data = buf_.subspan(8);
 
-    std::shared_ptr<uint8_t[]> buffer;
-    uLongf unzipped_length = (uLongf)uncompressed_size();
+    std::shared_ptr<uint8_t[]> out_buffer;
+    unsigned long zipped_length = (unsigned long)raw_data.size();
+    unsigned long unzipped_length = uncompressed_size();
     try {
-        buffer = std::make_shared<uint8_t[]>(unzipped_length);
+        out_buffer = std::make_shared<uint8_t[]>(unzipped_length);
     } catch(std::bad_alloc &err) {
         logger::error("Failed to allocate output buffer: {}", err.what());
         throw err;
     }
-    uLong zipped_length = (uLong)raw_data.size();
+    
     logger::info("Decompressing asset '{}' of size {} (compressed size {})", name, utils::human_bytes(unzipped_length), utils::human_bytes(zipped_length));
-    int errcode = uncompress2(buffer.get(), &unzipped_length, raw_data.data(), &zipped_length);
+    int errcode = uncompress2(out_buffer.get(), &unzipped_length, raw_data.data(), &zipped_length);
     if(errcode != Z_OK) {
         switch(errcode) {
         case Z_MEM_ERROR:
@@ -150,5 +151,5 @@ std::vector<uint8_t> Asset2::get_data(bool raw) const {
         }
         throw std::runtime_error(zError(errcode));
     }
-    return std::vector<uint8_t>(buffer.get(), buffer.get() + unzipped_length);
+    return std::vector<uint8_t>(out_buffer.get(), out_buffer.get() + unzipped_length);
 }

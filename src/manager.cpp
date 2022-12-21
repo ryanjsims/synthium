@@ -1,6 +1,7 @@
 #include "synthium/crc64.h"
 #include "synthium/manager.h"
 #include "synthium/version.h"
+#include "synthium/utils.h"
 
 #include <algorithm>
 #include <execution>
@@ -126,7 +127,7 @@ std::unique_ptr<uint8_t[]> Manager::open_pack(std::filesystem::path path, size_t
     std::ifstream input(path, std::ios::binary | std::ios::ate);
 
     *length = input.tellg();
-    logger::debug("Loading file {} with length: {}", path.filename().string(), *length);
+    logger::debug("Loading file {} with length: {}", path.filename().string(), utils::human_bytes(*length));
     input.seekg(0);
     std::unique_ptr<uint8_t[]> data;
     try {
