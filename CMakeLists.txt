@@ -35,7 +35,7 @@ target_include_directories(synthium PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/external/zlib/>  
 )
 target_link_libraries(synthium PRIVATE spdlog::spdlog ZLIB::ZLIB)
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU"))
   target_link_libraries(synthium PRIVATE tbb)
 endif()
 set_target_properties(synthium PROPERTIES PUBLIC_HEADER "include/synthium/synthium.h;include/synthium/loader.h;include/synthium/manager.h;include/synthium/version.h")
