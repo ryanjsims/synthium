@@ -5,6 +5,10 @@
 
 #include <zlib.h>
 
+#if __cpp_lib_shared_ptr_arrays < 201707L
+#error synthium requires a compiler that supports std::make_shared<T[]> (__cpp_lib_shared_ptr_arrays >= 201707L)
+#endif
+
 uint32_t ntohl(uint32_t const net) {
     uint8_t data[4] = {};
     memcpy(&data, &net, sizeof(data));
