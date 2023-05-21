@@ -17,6 +17,7 @@ namespace synthium {
         Manager(std::vector<std::filesystem::path> packs);
 
         const std::shared_ptr<Asset2> get(std::string name);
+        const std::optional<Asset2Raw> get_raw(std::string name);
         bool contains(std::string name) const;
         void export_by_magic(std::span<uint8_t> magic, std::filesystem::path output_directory = std::filesystem::path("export"), std::string extension = ".bin");
         void deallocate(ssize_t bytes);

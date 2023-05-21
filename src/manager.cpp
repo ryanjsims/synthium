@@ -71,6 +71,26 @@ const std::shared_ptr<Asset2> Manager::get(std::string name) {
     return to_return;
 }
 
+const std::optional<Asset2Raw> Manager::get_raw(std::string name) {
+    uint64_t namehash = crc64(name);
+    if(namehash_to_pack.find(namehash) == namehash_to_pack.end()) {
+        logger::error("{} not found in given packs.", name);
+        return {};
+    }
+
+    uint32_t index = namehash_to_pack.at(namehash);
+    auto&[pack, data] = packs.at(index);
+
+    try {
+        index = pack.namehash_to_asset.at(namehash);
+    } catch(std::out_of_range &err) {
+        logger::error("{} not in Pack {}: {}", name, pack.get_name(), err.what());
+        return {};
+    }
+
+    return pack.raw_assets()[index];
+}
+
 bool Manager::contains(std::string name) const {
     return namehash_to_pack.find(crc64(name)) != namehash_to_pack.end();
 }

@@ -69,6 +69,7 @@ std::shared_ptr<Asset2> Pack2::asset(std::string name) {
 
     std::unordered_map<uint32_t, std::shared_ptr<Asset2>>::iterator iter;
     if((iter = assets_in_use.find(index)) != assets_in_use.end()) {
+        logger::info("Using asset from cache");
         return iter->second;
     }
     std::span<Asset2Raw> assets = raw_assets();
@@ -122,9 +123,13 @@ uint32_t Asset2::uncompressed_size() const {
     return ntohl((uint32_t)get<uint32_t>(4));
 }
 
-std::vector<uint8_t> Asset2::get_data(bool raw) const {
+std::vector<uint8_t> Asset2::get_data(bool raw) {
     if (raw || !raw_.is_zipped()) {
         return std::vector<uint8_t>(buf_.begin(), buf_.end());
+    }
+    if(decompressed != nullptr) {
+        logger::info("Using data from cache");
+        return std::vector<uint8_t>(decompressed.get(), decompressed.get() + uncompressed_size());
     }
     std::span<uint8_t> raw_data = buf_.subspan(8);
 
@@ -155,5 +160,6 @@ std::vector<uint8_t> Asset2::get_data(bool raw) const {
         }
         throw std::runtime_error(zError(errcode));
     }
+    decompressed = out_buffer;
     return std::vector<uint8_t>(out_buffer.get(), out_buffer.get() + unzipped_length);
 }

@@ -47,14 +47,19 @@ namespace synthium {
         }
 
         uint32_t uncompressed_size() const;
-        std::vector<uint8_t> get_data(bool raw = false) const;
+        std::vector<uint8_t> get_data(bool raw = false);
         std::string_view get_name() const {
             return name;
+        }
+
+        const Asset2Raw &raw() const {
+            return raw_;
         }
 
     private:
         std::string name;
         Asset2Raw raw_;
+        std::shared_ptr<uint8_t[]> decompressed;
     };
 
     struct Pack2 {
