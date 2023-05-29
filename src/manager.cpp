@@ -135,6 +135,14 @@ void Manager::export_by_magic(
     });
 }
 
+Pack2 &Manager::get_pack(uint32_t index) {
+    return packs[index].first;
+}
+
+uint32_t Manager::pack_count() {
+    return static_cast<uint32_t>(packs.size());
+}
+
 void Manager::deallocate(ssize_t bytes) {
     for(uint32_t i = 0; i < packs.size() && bytes > 0; i++) {
         if(pack_is_loaded(i) && !packs.at(i).first.in_use()) {

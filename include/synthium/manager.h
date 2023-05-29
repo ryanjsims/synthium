@@ -21,6 +21,9 @@ namespace synthium {
         bool contains(std::string name) const;
         void export_by_magic(std::span<uint8_t> magic, std::filesystem::path output_directory = std::filesystem::path("export"), std::string extension = ".bin");
         void deallocate(ssize_t bytes);
+
+        Pack2 &get_pack(uint32_t index);
+        uint32_t pack_count();
     
     private:
         std::unordered_map<uint64_t, uint32_t> namehash_to_pack;

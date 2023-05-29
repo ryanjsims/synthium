@@ -58,7 +58,22 @@ std::span<Asset2Raw> Pack2::raw_assets() const {
     return std::span<Asset2Raw>((Asset2Raw*)asset_data.data(), asset_count());
 }
 
-std::shared_ptr<Asset2> Pack2::asset(std::string name) {
+std::shared_ptr<Asset2> Pack2::asset(uint32_t index, bool cache) {
+    std::unordered_map<uint32_t, std::shared_ptr<Asset2>>::iterator iter;
+    if((iter = assets_in_use.find(index)) != assets_in_use.end()) {
+        logger::debug("Using asset from cache");
+        return iter->second;
+    }
+    std::span<Asset2Raw> assets = raw_assets();
+    std::shared_ptr<Asset2> asset = std::make_shared<Asset2>(assets[index], buf_.subspan(assets[index].offset, assets[index].data_length));
+    if(cache) {
+        assets_in_use[index] = asset;
+        return assets_in_use[index];
+    }
+    return asset;
+}
+
+std::shared_ptr<Asset2> Pack2::asset(std::string name, bool cache) {
     uint32_t index;
     try {
         index = namehash_to_asset.at(crc64(name));
@@ -73,8 +88,12 @@ std::shared_ptr<Asset2> Pack2::asset(std::string name) {
         return iter->second;
     }
     std::span<Asset2Raw> assets = raw_assets();
-    assets_in_use[index] = std::make_shared<Asset2>(assets[index], name, buf_.subspan(assets[index].offset, assets[index].data_length));
-    return assets_in_use[index];
+    std::shared_ptr<Asset2> asset = std::make_shared<Asset2>(assets[index], buf_.subspan(assets[index].offset, assets[index].data_length));
+    if(cache) {
+        assets_in_use[index] = asset;
+        return assets_in_use[index];
+    }
+    return asset;
 }
 
 Asset2 Pack2::asset(std::string name) const {
@@ -143,7 +162,9 @@ std::vector<uint8_t> Asset2::get_data(bool raw) {
         throw err;
     }
     
-    logger::info("Decompressing asset '{}' of size {} (compressed size {})", name, utils::human_bytes(unzipped_length), utils::human_bytes(zipped_length));
+    if(name != "") {
+        logger::info("Decompressing asset '{}' of size {} (compressed size {})", name, utils::human_bytes(unzipped_length), utils::human_bytes(zipped_length));
+    }
     int errcode = uncompress2(out_buffer.get(), &unzipped_length, raw_data.data(), &zipped_length);
     if(errcode != Z_OK) {
         switch(errcode) {

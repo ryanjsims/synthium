@@ -91,7 +91,8 @@ namespace synthium {
         ref<uint64_t> map_offset() const;
 
         std::span<Asset2Raw> raw_assets() const;
-        std::shared_ptr<Asset2> asset(std::string name);
+        std::shared_ptr<Asset2> asset(uint32_t index, bool cache = true);
+        std::shared_ptr<Asset2> asset(std::string name, bool cache = true);
         std::vector<uint8_t> asset_data(std::string name, bool raw = false) const;
 
         bool contains(std::string name) const;
